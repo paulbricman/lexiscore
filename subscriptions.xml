@@ -1,0 +1,10 @@
+<opml version="2.0">
+	<body>
+		<outline text="Subscriptions" title="Subscriptions">
+			<outline xmlUrl='https://thesephist.com/index.xml' />
+			<outline xmlUrl='https://www.geoffreylitt.com/feed.xml' />
+			<outline xmlUrl='https://paulbricman.com/reflections/feed.xml' />
+	
+		</outline>
+	</body>
+</opml>
