@@ -33,8 +33,12 @@ def fetch_from_opml(filename, max_days_ago):
         aggregate_titles[e_idx] = e.get('author') + ' | ' + e.get('title')
 
     aggregate_contents = [BeautifulSoup(e, 'html.parser').get_text() for e in aggregate_contents]
+
+    data = {}
+    for idx in range(len(aggregate_contents)):
+        data[aggregate_titles[idx]] = aggregate_contents[idx]
     
-    return aggregate_titles, aggregate_contents
+    return data
 
 
 def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
@@ -54,9 +58,8 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
         bookmark_contents += [article.text]
         bookmark_titles += [domain + ' | ' + article.title]
 
-    return bookmark_titles, bookmark_contents
-
-'''
-import connectors
-x=connectors.fetch_from_bookmarks('data/bookmarks.html', 'Blogs', 200)
-'''
+    data = {}
+    for idx in range(len(bookmark_contents)):
+        data[bookmark_titles[idx]] = bookmark_contents[idx]
+    
+    return data
