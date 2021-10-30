@@ -7,6 +7,7 @@ import opml
 import re
 import time
 from urllib.parse import urlparse
+from ebooklib import epub
 
 
 def fetch_from_opml(filename, max_days_ago):
@@ -61,5 +62,16 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
     data = {}
     for idx in range(len(bookmark_contents)):
         data[bookmark_titles[idx]] = bookmark_contents[idx]
+    
+    return data
+
+
+def fetch_from_epub(filename):
+    book = epub.read_epub(filename)
+    content = sorted([e.content for e in book.items if isinstance(e, epub.EpubHtml)], key=lambda x: len(x), reverse=True)[0]
+    content = BeautifulSoup(content, 'html.parser').get_text()
+    
+    data = {}
+    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = content
     
     return data
