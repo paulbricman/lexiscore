@@ -8,6 +8,8 @@ import re
 import time
 from urllib.parse import urlparse
 from ebooklib import epub
+from tika import parser
+import os
 
 
 def fetch_from_opml(filename, max_days_ago):
@@ -74,4 +76,22 @@ def fetch_from_epub(filename):
     data = {}
     data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = content
     
+    return data
+
+
+def fetch_from_pdf(filename):
+    doc = parser.from_file(filename)
+
+    data = {}
+    data[doc['metadata']['Author'] + ' | ' + doc['metadata']['pdf:docinfo:title']] = doc['content']
+
+    return data
+
+
+def fetch_from_plaintext(filename):
+    text = open(filename).read()
+
+    data = {}
+    data[os.path.splitext(os.path.basename(filename))[0]] = text
+
     return data
