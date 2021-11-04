@@ -95,3 +95,5 @@ def fetch_from_plaintext(filename):
     data[os.path.splitext(os.path.basename(filename))[0]] = text
 
     return data
+
+
