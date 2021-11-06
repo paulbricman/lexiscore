@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 
 def hero_section():
@@ -21,17 +22,21 @@ def add_section(parent):
 
     type = parent.selectbox('What type of food for thought would you like to add?', (
         '📣 RSS (OPML)', '🔖 Bookmarks (HTML Export)', '📄 PDFs & 📕 EPUBs'))
-    if type == '📣 RSS (OPML)' or type == '🔖 Bookmarks (HTML Export)':
+
+    if type == '📣 RSS (OPML)':
         days = parent.number_input(
             'How many days does this stuff keep?', step=1)
-    if type == '🔖 Bookmarks (HTML Export)':
+        files = parent.file_uploader(
+            'Place your food for thought here:', type=['xml', 'opml'])
+    elif type == '🔖 Bookmarks (HTML Export)':
         folder = parent.text_input('How\'s the bookmark folder called?')
-    if type == '📄 PDFs & 📕 EPUBs':
+        days = parent.number_input(
+            'How many days does this stuff keep?', step=1)
+        files = parent.file_uploader(
+            'Place your food for thought here:', type=['html'])
+    elif type == '📄 PDFs & 📕 EPUBs':
         files = parent.file_uploader(
             'Place your food for thought here:', accept_multiple_files=True)
-    else:
-        files = parent.file_uploader(
-            'Place your food for thought here:', accept_multiple_files=False)
 
     parent.caption('')
     if parent.button('add item'):
@@ -50,7 +55,7 @@ def add_section(parent):
 
 
 def basket_section(parent):
-    parent.markdown('#### 🧺 basket')
+    parent.markdown('#### 🛒 cart')
     parent.markdown('')
     parent.table(st.session_state['data']
                  [['type', 'filename', 'days', 'folder']])
