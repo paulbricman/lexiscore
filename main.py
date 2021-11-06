@@ -21,12 +21,15 @@ if False:#st.session_state.conceptarium_url == '':
     st.warning('Please introduce the URL of your conceptarium!')
 else:
     if 'data' not in st.session_state.keys():
-       st.session_state['data'] = pd.DataFrame([], columns=['type', 'filename', 'days', 'folder', 'file'])
+       st.session_state['data'] = pd.DataFrame([], columns=['type', 'title', 'reading time', 'text'])
     
+
+
+
     hero_section()
 
-    col1, padding, col2 = st.columns([30, 1, 30])
+    col1, padding, col2 = st.columns([20, 1, 30])
     add_section(col1)
-    basket_section(col2)
+    cart_section(col2)
 
     footer_section()

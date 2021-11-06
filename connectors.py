@@ -1,7 +1,7 @@
 from newspaper import Article
 import feedparser
 from datetime import datetime
-from dateutil import parser
+import dateutil
 from bs4 import BeautifulSoup
 import opml
 import re
@@ -17,14 +17,14 @@ def fetch_from_opml(filename, max_days_ago):
 
     for feed_entry in opml.parse(filename)[0]:
         feed = feedparser.parse(feed_entry.xmlUrl)
-        entries = [e for e in feed['entries'] if (datetime.now() - parser.parse(e['published']).replace(tzinfo=None)).days < max_days_ago]
+        entries = [e for e in feed['entries'] if (datetime.now() - dateutil.parser.parse(e['published']).replace(tzinfo=None)).days < max_days_ago]
         
         for e_idx, e in enumerate(entries):
             entries[e_idx]['author'] = feed['feed']['title'] 
         
         aggregate_entries += entries
 
-    aggregate_entries = sorted(aggregate_entries, key=lambda x: parser.parse(x['published']))
+    aggregate_entries = sorted(aggregate_entries, key=lambda x: dateutil.parser.parse(x['published']), reverse=True)
     aggregate_contents = [''] * len(aggregate_entries)
     aggregate_titles = [''] * len(aggregate_entries)
 
