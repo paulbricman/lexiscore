@@ -7,12 +7,13 @@ from components import *
 
 
 st.set_page_config(
-    page_title='shannon score',
+    page_title='lexiscore',
     layout='wide',
     menu_items={
-        'Get help': 'https://github.com/paulbricman/shannon-nutri-score/issues',
-        'Report a Bug': 'https://github.com/paulbricman/shannon-nutri-score/issues/new',
-        'About': 'https://paulbricman.com/thoughtware/shannon-nutri-score'
+        # TODO
+        #'Get help': 'https://github.com/paulbricman/shannon-nutri-score/issues',
+        #'Report a Bug': 'https://github.com/paulbricman/shannon-nutri-score/issues/new',
+        #'About': 'https://paulbricman.com/thoughtware/shannon-nutri-score'
     })
 
 sidebar_section()

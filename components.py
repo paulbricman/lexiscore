@@ -6,7 +6,7 @@ import numpy as np
 
 
 def hero_section():
-    st.title('🥗 Shannon Nutri-Score')
+    st.title('📗 lexiscore')
     st.markdown('A nutritional label for food for thought.')
     st.markdown('---')
 
@@ -103,7 +103,7 @@ def cart_section(parent):
     parent.markdown('#### 🍱 meal prep')
     parent.markdown('')
     parent.select_slider(
-        'Specify the minimum Shannon Nutri-Score to use for meal prep:', ['A', 'B', 'C', 'D', 'E'])
+        'Specify the minimum lexiscore to use for meal prep:', ['A', 'B', 'C', 'D', 'E'])
 
     parent.button('generate epub')
     parent.button('generate pdf')
