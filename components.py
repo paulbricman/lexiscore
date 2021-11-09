@@ -84,7 +84,7 @@ def add_section(parent):
                     st.session_state['data'] = st.session_state['data'].append(
                         new_entry, ignore_index=True)
 
-                os.remove(os.path.join('tmp', file.name))
+                os.remove(path)
 
             st.experimental_rerun()
 

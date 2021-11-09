@@ -22,9 +22,6 @@ if False:#st.session_state.conceptarium_url == '':
 else:
     if 'data' not in st.session_state.keys():
        st.session_state['data'] = pd.DataFrame([], columns=['type', 'title', 'reading time', 'text'])
-    
-
-
 
     hero_section()
 
