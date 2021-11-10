@@ -47,9 +47,11 @@ def get_challenge(conceptarium, results, content_paragraphs, model, tokenizer):
     lengths = []
     
     for result_idx, result in enumerate(results):
-        context = '\n\n'.join([conceptarium[e] for e in reversed([f['corpus_id'] for f in result])]) + '\n\n---\n\n'
+        context = 'Main Points:\n\n- ' + '\n- '.join([conceptarium[e] for e in reversed([f['corpus_id'] for f in result])]) + '\n\nSummary\n\n'
         target = content_paragraphs[result_idx]
         full = context + target
+
+        print(full)
         
         target_len = tokenizer(target, return_tensors='pt').input_ids.size(1)
         full_ids = tokenizer(full, return_tensors='pt').input_ids
