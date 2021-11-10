@@ -25,7 +25,7 @@ def test_skill():
 
 
 def test_perplexity():
-    encoder_model = processing.init_model()
+    encoder_model = processing.init_encoder()
 
     conceptarium = util.fetch_conceptarium()
     conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
@@ -37,32 +37,9 @@ def test_perplexity():
     content_embeddings = processing.get_embeddings(encoder_model, content_paragraphs)
 
     results = processing.get_closest_thoughts(conceptarium_embeddings, content_embeddings)
+    autoregressive_model, tokenizer = processing.init_autoregressive()
 
-    tokenizer = AutoTokenizer.from_pretrained('distilgpt2')
-    model = AutoModelWithLMHead.from_pretrained('distilgpt2')
-    
-    for result_idx, result in enumerate(results):
-        context = '\n\n'.join([conceptarium[e] for e in [f['corpus_id'] for f in result]]) + '\n\n---\n\n'
-        target = content_paragraphs[result_idx]
-        full = context + target
-
-        print(full)
-        
-        target_len = tokenizer(target, return_tensors='pt').input_ids.size(1)
-        full_ids = tokenizer(full, return_tensors='pt').input_ids
-        
-        target_ids = full_ids.clone()
-        target_ids[:,:-target_len] = -100
-
-        print(target_ids)
-        
-        with torch.no_grad():
-            outputs = model(full_ids, labels=target_ids)
-            neg_log_likelihood = outputs[0] * target_len
-
-        print('neg_log_likelihood:', neg_log_likelihood)
-        ppl = torch.exp(neg_log_likelihood / target_len)
-        print(ppl)
-
+    challenge = processing.get_challenge(conceptarium, results, content_paragraphs, autoregressive_model, tokenizer)
+    print('Challenge:', challenge)
 
 test_perplexity()
