@@ -8,16 +8,16 @@ from tqdm import tqdm
 
 
 def test_skill():
-    model = processing.init_model()
+    encoder_model = processing.init_model()
 
     conceptarium = util.fetch_conceptarium()
     conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
-    conceptarium_embeddings = processing.get_embeddings(model, conceptarium)
+    conceptarium_embeddings = processing.get_embeddings(encoder_model, conceptarium)
 
     content = connectors.fetch_from_opml('data/subscriptions.xml', 100)
     content = list(content.values())[0]
     content_paragraphs = processing.get_paragraphs(content)
-    content_embeddings = processing.get_embeddings(model, content_paragraphs)
+    content_embeddings = processing.get_embeddings(encoder_model, content_paragraphs)
 
     results = processing.get_closest_thoughts(conceptarium_embeddings, content_embeddings)
     skill = processing.get_skill(results)
@@ -25,37 +25,44 @@ def test_skill():
 
 
 def test_perplexity():
+    encoder_model = processing.init_model()
+
+    conceptarium = util.fetch_conceptarium()
+    conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
+    conceptarium_embeddings = processing.get_embeddings(encoder_model, conceptarium)
+
+    content = connectors.fetch_from_opml('data/subscriptions.xml', 100)
+    content = list(content.values())[0]
+    content_paragraphs = processing.get_paragraphs(content)
+    content_embeddings = processing.get_embeddings(encoder_model, content_paragraphs)
+
+    results = processing.get_closest_thoughts(conceptarium_embeddings, content_embeddings)
+
     tokenizer = AutoTokenizer.from_pretrained('distilgpt2')
     model = AutoModelWithLMHead.from_pretrained('distilgpt2')
-
-    content = connectors.fetch_from_opml('data/subscriptions.xml', 14)
-    content = list(content.values())[0]
-    print(content)
-    encodings = tokenizer(content, return_tensors='pt')
-    print(encodings['input_ids'].size(0))
     
-    max_length = model.config.n_positions
-    stride = max_length
+    for result_idx, result in enumerate(results):
+        context = '\n\n'.join([conceptarium[e] for e in [f['corpus_id'] for f in result]]) + '\n\n---\n\n'
+        target = content_paragraphs[result_idx]
+        full = context + target
 
-    nlls = []
-    for i in tqdm(range(0, encodings.input_ids.size(1), stride)):
-        begin_loc = max(i + stride - max_length, 0)
-        end_loc = min(i + stride, encodings.input_ids.size(1))
-        trg_len = end_loc - i    # may be different from stride on last loop
-        input_ids = encodings.input_ids[:,begin_loc:end_loc]
-        target_ids = input_ids.clone()
-        target_ids[:,:-trg_len] = -100
+        print(full)
+        
+        target_len = tokenizer(target, return_tensors='pt').input_ids.size(1)
+        full_ids = tokenizer(full, return_tensors='pt').input_ids
+        
+        target_ids = full_ids.clone()
+        target_ids[:,:-target_len] = -100
 
+        print(target_ids)
+        
         with torch.no_grad():
-            outputs = model(input_ids, labels=target_ids)
-            neg_log_likelihood = outputs[0] * trg_len
+            outputs = model(full_ids, labels=target_ids)
+            neg_log_likelihood = outputs[0] * target_len
 
-        nlls.append(neg_log_likelihood)
-
-    ppl = torch.exp(torch.stack(nlls).sum() / end_loc)
-
-    print(ppl, nlls)
-
+        print('neg_log_likelihood:', neg_log_likelihood)
+        ppl = torch.exp(neg_log_likelihood / target_len)
+        print(ppl)
 
 
 test_perplexity()

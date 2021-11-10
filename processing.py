@@ -26,7 +26,7 @@ def get_embeddings(model, paragraphs):
 
 
 def get_closest_thoughts(conceptarium_embeddings, content_embeddings):
-    return semantic_search(content_embeddings, conceptarium_embeddings, top_k=5)
+    return semantic_search(content_embeddings, conceptarium_embeddings, top_k=3)
 
 
 def get_skill(results): 
