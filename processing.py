@@ -4,31 +4,44 @@ from sentence_transformers.util import semantic_search
 import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import streamlit as st
 
 
 def get_paragraphs(text):
     lines = text.split('\n')
     paragraphs = []
 
+    max_sents = 8
+
     for line in lines:
-        sents = len(sent_tokenize(line))
-        if sents >= 2 and sents <= 8:
+        sents = sent_tokenize(line)
+        if len(sents) > max_sents:
+            for left in range(0, len(sents), max_sents):
+                paragraphs += [' '.join(sents[left:min(left+max_sents, len(sents))])]
+        elif len(sents) >= 2:
             paragraphs += [line]
 
     return paragraphs
 
 
+@st.cache(allow_output_mutation=True)
 def init_encoder():
     model = SentenceTransformer('all-MiniLM-L6-v2')
     return model
 
 
+@st.cache(allow_output_mutation=True)
 def init_autoregressive():
     model = AutoModelForCausalLM.from_pretrained('distilgpt2')
+    return model
+
+
+def init_tokenizer():
     tokenizer = AutoTokenizer.from_pretrained('distilgpt2')
-    return model, tokenizer 
+    return tokenizer
 
 
+@st.cache()
 def get_embeddings(model, paragraphs):
     return model.encode(paragraphs)
 
@@ -50,8 +63,6 @@ def get_challenge(conceptarium, results, content_paragraphs, model, tokenizer):
         context = 'Main Points:\n\n- ' + '\n- '.join([conceptarium[e] for e in reversed([f['corpus_id'] for f in result])]) + '\n\nSummary\n\n'
         target = content_paragraphs[result_idx]
         full = context + target
-
-        print(full)
         
         target_len = tokenizer(target, return_tensors='pt').input_ids.size(1)
         full_ids = tokenizer(full, return_tensors='pt').input_ids

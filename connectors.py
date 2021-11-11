@@ -17,7 +17,7 @@ def fetch_from_opml(filename, max_days_ago):
 
     for feed_entry in opml.parse(filename)[0]:
         feed = feedparser.parse(feed_entry.xmlUrl)
-        entries = [e for e in feed['entries'] if (datetime.now() - dateutil.parser.parse(e['published']).replace(tzinfo=None)).days < max_days_ago]
+        entries = [e for e in feed['entries'] if 'published' in e.keys() and (datetime.now() - dateutil.parser.parse(e['published']).replace(tzinfo=None)).days < max_days_ago]
         
         for e_idx, e in enumerate(entries):
             entries[e_idx]['author'] = feed['feed']['title'] 

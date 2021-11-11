@@ -3,6 +3,9 @@ import pandas as pd
 from connectors import *
 import time
 import numpy as np
+from processing import *
+from util import *
+import plotly.express as px
 
 
 def hero_section():
@@ -63,26 +66,47 @@ def add_section(parent):
 
                 path = os.path.join('tmp', file.name)
 
-                if type == '📣 RSS (OPML)':
-                    item_type = '📣 RSS'
-                    data = fetch_from_opml(path, days)
-                elif type == '🔖 Bookmarks (HTML Export)':
-                    item_type = '🔖 Bookmark'
-                    data = fetch_from_bookmarks(path, folder, days)
-                elif type == '📄 PDF':
-                    item_type = '📄 PDF'
-                    data = fetch_from_pdf(path)
-                elif type == '📕 EPUB':
-                    item_type = '📕 EPUB'
-                    data = fetch_from_epub(path)
-                elif type == '📝 Plain Text':
-                    item_type = '📝 Plain Text'
-                    data = fetch_from_plaintext(path)
+                with st.spinner('Fetching content...'):
+                    if type == '📣 RSS (OPML)':
+                        item_type = '📣 RSS'
+                        data = fetch_from_opml(path, days)
+                    elif type == '🔖 Bookmarks (HTML Export)':
+                        item_type = '🔖 Bookmark'
+                        data = fetch_from_bookmarks(path, folder, days)
+                    elif type == '📄 PDF':
+                        item_type = '📄 PDF'
+                        data = fetch_from_pdf(path)
+                    elif type == '📕 EPUB':
+                        item_type = '📕 EPUB'
+                        data = fetch_from_epub(path)
+                    elif type == '📝 Plain Text':
+                        item_type = '📝 Plain Text'
+                        data = fetch_from_plaintext(path)
+
+                with st.spinner('Warming up NLP models...'):
+                    encoder_model = init_encoder()
+                    autoregressive_model = init_autoregressive()
+                    tokenizer = init_tokenizer()
+
+                    conceptarium = fetch_conceptarium()
+                    conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
+                    conceptarium_embeddings = get_embeddings(encoder_model, conceptarium)
 
                 for k, v in data.items():
-                    new_entry = pd.DataFrame([[item_type, k, round(len(v.split()) / 250), v]], columns=['type', 'title', 'reading time', 'text'])
-                    st.session_state['data'] = st.session_state['data'].append(
-                        new_entry, ignore_index=True)
+                    with st.spinner('Determining the nutritional value of "' + k + '"...'):
+                        content_paragraphs = get_paragraphs(v)
+                        content_embeddings = get_embeddings(encoder_model, content_paragraphs)
+                        
+                        if len(content_paragraphs) > 1 and len(v.split()) > 150:
+                                results = get_closest_thoughts(conceptarium_embeddings, content_embeddings)
+                                skill = get_skill(results)
+                                challenge = get_challenge(conceptarium, results, content_paragraphs, autoregressive_model, tokenizer)
+                
+                                new_entry = pd.DataFrame([[item_type, k, len(v.split()) / 250, skill, challenge, v]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'text'])
+                                st.session_state['data'] = st.session_state['data'].append(
+                                    new_entry, ignore_index=True)
+                        else:
+                            print('no paragraphs:', k, '---', v, '---')
 
                 os.remove(path)
 
@@ -92,11 +116,14 @@ def add_section(parent):
 def cart_section(parent):
     parent.markdown('#### 🛒 cart')
     parent.markdown('')
-    parent.table(st.session_state['data'][['type', 'title', 'reading time']])
+    parent.table(st.session_state['data'][['type', 'title', 'reading time', 'skill', 'challenge']])
     
     if st.session_state['data'].shape[0] > 0:
         parent.caption('Total: ' + str(sum(st.session_state['data'][['reading time']].values)[0]) + ' minutes')
-    parent.button('start labeling')
+        
+        fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=['title'], color_discrete_sequence=['#228b22'])
+        
+        parent.plotly_chart(fig)
 
     parent.markdown('---')
 
@@ -110,6 +137,8 @@ def cart_section(parent):
 
 
 def footer_section():
+    st.markdown('---')
+    st.markdown('')
     hide_streamlit_style = '''
                 <style>
                 #MainMenu {visibility: hidden;}
