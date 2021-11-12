@@ -97,12 +97,12 @@ def add_section(parent):
                         content_paragraphs = get_paragraphs(v)
                         content_embeddings = get_embeddings(encoder_model, content_paragraphs)
                         
-                        if len(content_paragraphs) > 1 and len(v.split()) > 150:
+                        if len(content_paragraphs) > 1 and len(('\n\n'.join(content_paragraphs)).split()) > 150:
                                 results = get_closest_thoughts(conceptarium_embeddings, content_embeddings)
                                 skill = get_skill(results)
                                 challenge = get_challenge(conceptarium, results, content_paragraphs, autoregressive_model, tokenizer)
-                
-                                new_entry = pd.DataFrame([[item_type, k, len(v.split()) / 250, skill, challenge, v]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'text'])
+                                raw_challenge = get_raw_challenge(content_paragraphs, autoregressive_model, tokenizer)
+                                new_entry = pd.DataFrame([[item_type, k, len(v.split()) / 250, skill, -(raw_challenge - challenge) / raw_challenge, v]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'text'])
                                 st.session_state['data'] = st.session_state['data'].append(
                                     new_entry, ignore_index=True)
                         else:

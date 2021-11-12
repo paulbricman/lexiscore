@@ -80,3 +80,23 @@ def get_challenge(conceptarium, results, content_paragraphs, model, tokenizer):
 
     return np.average(ppls, weights=lengths)
 
+
+def get_raw_challenge(content_paragraphs, model, tokenizer):
+    ppls = []
+    lengths = []
+    
+    for content_paragraph_idx, content_paragraph in enumerate(content_paragraphs):
+        target = content_paragraph
+        
+        target_len = tokenizer(target, return_tensors='pt').input_ids.size(1)
+        target_ids = tokenizer(target, return_tensors='pt').input_ids
+        
+        with torch.no_grad():
+            outputs = model(target_ids, labels=target_ids)
+            neg_log_likelihood = outputs[0] * target_len
+
+        ppl = torch.exp(neg_log_likelihood / target_len)
+        ppls += [ppl.numpy()]
+        lengths += [len(word_tokenize(target))]
+
+    return np.average(ppls, weights=lengths)
