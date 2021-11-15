@@ -11,13 +11,23 @@ def get_paragraphs(text):
     lines = text.split('\n')
     paragraphs = []
 
-    max_sents = 8
+    max_sents = 10
 
     for line in lines:
         sents = sent_tokenize(line)
         if len(sents) > max_sents:
-            for left in range(0, len(sents), max_sents):
-                paragraphs += [' '.join(sents[left:min(left+max_sents, len(sents))])]
+            # for left in range(0, len(sents), max_sents):
+            #     paragraphs += [' '.join(sents[left:min(left+max_sents, len(sents))])]
+            left = 0
+            max_right = len(sents)
+
+            while left < max_right:
+                right = left + 1
+                while right < max_right and right - left < max_sents and len(' '.join(sents[left:right]).split()) < 400:
+                    right += 1
+                paragraphs += [' '.join(sents[left:right])]
+                left = right
+
         elif len(sents) >= 2:
             paragraphs += [line]
 
@@ -55,7 +65,11 @@ def get_skill(results):
     return np.mean(scores)
 
 
-def get_challenge(conceptarium, results, content_paragraphs, model, tokenizer):
+@st.cache()
+def get_challenge(conceptarium, results, content_paragraphs, model):
+    # refactor!!!
+    tokenizer = init_tokenizer()
+
     ppls = []
     lengths = []
     
@@ -81,7 +95,11 @@ def get_challenge(conceptarium, results, content_paragraphs, model, tokenizer):
     return np.average(ppls, weights=lengths)
 
 
-def get_raw_challenge(content_paragraphs, model, tokenizer):
+@st.cache()
+def get_raw_challenge(content_paragraphs, model):
+    # refactor!!!
+    tokenizer = init_tokenizer()
+
     ppls = []
     lengths = []
     
