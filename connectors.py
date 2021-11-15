@@ -35,6 +35,7 @@ def fetch_from_opml(filename, max_days_ago):
             aggregate_contents[e_idx] = e.get('summary')
         aggregate_titles[e_idx] = e.get('author') + ' | ' + e.get('title')
 
+    raw_contents = aggregate_contents.copy()
     aggregate_contents = [BeautifulSoup(e, 'html.parser').get_text() for e in aggregate_contents]
 
     data = {}

@@ -153,19 +153,25 @@ def cart_section(parent):
     lexiscores = ['A', 'B', 'C', 'D', 'E']
     min_lexiscore = parent.select_slider(
         'Specify the minimum lexiscore to use for meal prep:', lexiscores)
+    allowed_lexiscores = lexiscores[:lexiscores.index(min_lexiscore) + 1]
 
     parent.button('generate epub')
 
 
     if parent.button('generate pdf'):
-        selection = st.session_state['data'][lexiscores.index(st.session_state['data']['lexiscore']) <= lexiscores.index(min_lexiscore)]
+        selection = [e in allowed_lexiscores for e in st.session_state['data']['lexiscore']]
+        selection = st.session_state['data'][selection]
         doc = SimpleDocTemplate('mealprep.pdf')
         components = []
         style = getSampleStyleSheet()
 
-        for idx, row in selection.iterrows(): 
+        for idx, row in selection.iterrows():
+            print('-----')
+            print(*sent_tokenize(row['text']), sep='\n\n')
+            print('-----')
             components.append(Paragraph(row['title'], style['h2']))
-            components.append(Paragraph(row['reading time'], style['h6']))
+            components.append(Paragraph(str(row['reading time']), style['h6']))
+            components.append(Paragraph(' ', style['h6']))
             components.append(Paragraph(row['text'], style['BodyText']))
             components.append(PageBreak())
         
