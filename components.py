@@ -9,6 +9,7 @@ from util import *
 import plotly.express as px
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+import webbrowser
 
 
 def hero_section():
@@ -97,7 +98,7 @@ def add_section(parent):
 
                 for k, v in data.items():
                     with st.spinner('Determining the nutritional value of "' + k + '"...'):
-                        content_paragraphs = get_paragraphs(v)
+                        content_paragraphs = get_paragraphs(v[0])
                         content_embeddings = get_embeddings(encoder_model, content_paragraphs)
                         
                         print('---', k, *content_paragraphs, sep='\n\n')
@@ -123,11 +124,11 @@ def add_section(parent):
                                 else:
                                     lexiscore = 'A'
 
-                                new_entry = pd.DataFrame([[item_type, k, len(v.split()) / 250, skill, challenge, lexiscore, v]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text'])
+                                new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250, 1), skill, challenge, lexiscore, v[0], v[1]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw'])
                                 st.session_state['data'] = st.session_state['data'].append(
                                     new_entry, ignore_index=True)
                         else:
-                            print('no paragraphs:', k, '---', v, '---')
+                            print('no paragraphs:', k, '---', v[0], '---')
 
                 os.remove(path)
 
@@ -155,27 +156,26 @@ def cart_section(parent):
         'Specify the minimum lexiscore to use for meal prep:', lexiscores)
     allowed_lexiscores = lexiscores[:lexiscores.index(min_lexiscore) + 1]
 
-    parent.button('generate epub')
 
-
-    if parent.button('generate pdf'):
+    if parent.button('start'):
         selection = [e in allowed_lexiscores for e in st.session_state['data']['lexiscore']]
         selection = st.session_state['data'][selection]
-        doc = SimpleDocTemplate('mealprep.pdf')
-        components = []
-        style = getSampleStyleSheet()
+        # doc = SimpleDocTemplate('mealprep.pdf')
+        # components = []
+        # style = getSampleStyleSheet()
+
+        html = ''
 
         for idx, row in selection.iterrows():
-            print('-----')
-            print(*sent_tokenize(row['text']), sep='\n\n')
-            print('-----')
-            components.append(Paragraph(row['title'], style['h2']))
-            components.append(Paragraph(str(row['reading time']), style['h6']))
-            components.append(Paragraph(' ', style['h6']))
-            components.append(Paragraph(row['text'], style['BodyText']))
-            components.append(PageBreak())
+            html += '<h1>🥗 ' + row['title'] + '</h1>'
+            html += '<li><b>⏱️ ' + str(row['reading time']) + '</b> minutes</li>'
+            html += '<li>📗 lexiscore <b>' + row['lexiscore'] + '</b></li>'
+            html += '<hr><div><br/><br/></div>'
+            html += row['raw']
+            html += '<div><br/><br/></div><hr>'
         
-        doc.build(components)            
+        open('tmp/mealprep.html', 'w+').write(html)
+        webbrowser.open_new_tab('file://' + os.path.abspath('./tmp/mealprep.html'))     
 
 
 def footer_section():

@@ -40,7 +40,7 @@ def fetch_from_opml(filename, max_days_ago):
 
     data = {}
     for idx in range(len(aggregate_contents)):
-        data[aggregate_titles[idx]] = aggregate_contents[idx]
+        data[aggregate_titles[idx]] = [aggregate_contents[idx], raw_contents[idx]]
     
     return data
 
@@ -53,6 +53,7 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
     bookmarks = [e for e in bookmarks if (time.time() - float(e['add_date']) < max_days_ago * 60 * 60 * 24)]
 
     bookmark_contents = []
+    bookmark_raw = []
     bookmark_titles = []
 
     for bookmark in bookmarks:
@@ -60,6 +61,7 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
         article = Article(bookmark['href'])
         article.build()
         bookmark_contents += [article.text]
+        bookmark_raw += [article.html]
         bookmark_titles += [domain + ' | ' + article.title]
 
     data = {}
@@ -72,10 +74,11 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
 def fetch_from_epub(filename):
     book = epub.read_epub(filename)
     content = sorted([e.content for e in book.items if isinstance(e, epub.EpubHtml)], key=lambda x: len(x), reverse=True)[0]
+    raw_content = content.copy()
     content = BeautifulSoup(content, 'html.parser').get_text()
     
     data = {}
-    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = content
+    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [content, raw_content]
     
     return data
 
@@ -84,7 +87,7 @@ def fetch_from_pdf(filename):
     doc = parser.from_file(filename)
 
     data = {}
-    data[doc['metadata']['Author'] + ' | ' + doc['metadata']['pdf:docinfo:title']] = doc['content']
+    data[doc['metadata']['Author'] + ' | ' + doc['metadata']['pdf:docinfo:title']] = [doc['content'], doc['content']]
 
     return data
 
@@ -93,7 +96,7 @@ def fetch_from_plaintext(filename):
     text = open(filename).read()
 
     data = {}
-    data[os.path.splitext(os.path.basename(filename))[0]] = text
+    data[os.path.splitext(os.path.basename(filename))[0]] = [text, text]
 
     return data
 
