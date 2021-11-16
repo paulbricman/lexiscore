@@ -10,6 +10,7 @@ import plotly.express as px
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import webbrowser
+import pathlib
 
 
 def hero_section():
@@ -101,7 +102,7 @@ def add_section(parent):
                         content_paragraphs = get_paragraphs(v[0])
                         content_embeddings = get_embeddings(encoder_model, content_paragraphs)
                         
-                        print('---', k, *content_paragraphs, sep='\n\n')
+                        #print('---', k, *content_paragraphs, sep='\n\n')
 
                         if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
                                 results = get_closest_thoughts(conceptarium_embeddings, content_embeddings)
@@ -160,9 +161,6 @@ def cart_section(parent):
     if parent.button('start'):
         selection = [e in allowed_lexiscores for e in st.session_state['data']['lexiscore']]
         selection = st.session_state['data'][selection]
-        # doc = SimpleDocTemplate('mealprep.pdf')
-        # components = []
-        # style = getSampleStyleSheet()
 
         html = ''
 
@@ -174,9 +172,12 @@ def cart_section(parent):
             html += row['raw']
             html += '<div><br/><br/></div><hr>'
         
-        open('tmp/mealprep.html', 'w+').write(html)
-        webbrowser.open_new_tab('file://' + os.path.abspath('./tmp/mealprep.html'))     
-
+        f = open(os.path.abspath('tmp/mealprep.html'), 'w+')
+        f.write(html)
+        
+        parent.info('Meal prep complete! Please use the button below to download the results.')
+        parent.download_button(label='download', data=html, file_name='mealprep.html', mime='text/html')
+        
 
 def footer_section():
     st.markdown('---')

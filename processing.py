@@ -1,3 +1,4 @@
+from os import replace
 from nltk.tokenize import sent_tokenize, word_tokenize
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import semantic_search
@@ -5,6 +6,7 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import streamlit as st
+import random
 
 
 def get_paragraphs(text):
@@ -30,6 +32,9 @@ def get_paragraphs(text):
 
         elif len(sents) >= 2:
             paragraphs += [line]
+
+    if len(paragraphs) > 100:
+        paragraphs = random.sample(paragraphs, k=100)
 
     return paragraphs
 

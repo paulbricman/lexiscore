@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from ebooklib import epub
 from tika import parser
 import os
+import regex as re
 
 
 def fetch_from_opml(filename, max_days_ago):
@@ -61,12 +62,21 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
         article = Article(bookmark['href'])
         article.build()
         bookmark_contents += [article.text]
-        bookmark_raw += [article.html]
+
+        raw = article.html
+        raw = re.sub(r'<head\s?>[\s\S]*<\/head\s?>', '', raw)
+
+        f = open('./tmp/test.html', 'w+')
+        f.write(raw)
+        f.close()
+        #print('NEW BOOKMARK RAW', raw)
+
+        bookmark_raw += [raw]
         bookmark_titles += [domain + ' | ' + article.title]
 
     data = {}
     for idx in range(len(bookmark_contents)):
-        data[bookmark_titles[idx]] = bookmark_contents[idx]
+        data[bookmark_titles[idx]] = [bookmark_contents[idx], bookmark_raw[idx]]
     
     return data
 
@@ -74,11 +84,10 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
 def fetch_from_epub(filename):
     book = epub.read_epub(filename)
     content = sorted([e.content for e in book.items if isinstance(e, epub.EpubHtml)], key=lambda x: len(x), reverse=True)[0]
-    raw_content = content.copy()
-    content = BeautifulSoup(content, 'html.parser').get_text()
+    processed = BeautifulSoup(content, 'html.parser').get_text()
     
     data = {}
-    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [content, raw_content]
+    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [processed, content.decode('utf-8')]
     
     return data
 
@@ -94,9 +103,10 @@ def fetch_from_pdf(filename):
 
 def fetch_from_plaintext(filename):
     text = open(filename).read()
+    raw = '\n'.join(['<p>' + e + '</p>' for e in text.split('\n')])
 
     data = {}
-    data[os.path.splitext(os.path.basename(filename))[0]] = [text, text]
+    data[os.path.splitext(os.path.basename(filename))[0]] = [text, raw]
 
     return data
 
