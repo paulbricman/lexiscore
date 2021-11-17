@@ -125,13 +125,13 @@ def add_section(parent):
                                 else:
                                     lexiscore = 'A'
 
-                                new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250, 1), skill, challenge, lexiscore, v[0], v[1]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw'])
+                                new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250, 1), skill, challenge, lexiscore, v[0], v[1], v[2]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
                                 st.session_state['data'] = st.session_state['data'].append(
                                     new_entry, ignore_index=True)
                         else:
                             print('no paragraphs:', k, '---', v[0], '---')
 
-                os.remove(path)
+                #os.remove(path)
 
             st.experimental_rerun()
 
@@ -162,14 +162,22 @@ def cart_section(parent):
         selection = [e in allowed_lexiscores for e in st.session_state['data']['lexiscore']]
         selection = st.session_state['data'][selection]
 
-        html = ''
+        html = '<h1>🍱 meal prep</h1><hr><div><br/><br/></div>'
 
         for idx, row in selection.iterrows():
             html += '<h1>🥗 ' + row['title'] + '</h1>'
             html += '<li><b>⏱️ ' + str(row['reading time']) + '</b> minutes</li>'
             html += '<li>📗 lexiscore <b>' + row['lexiscore'] + '</b></li>'
             html += '<hr><div><br/><br/></div>'
-            html += row['raw']
+            
+            if row['type'] != '📄 PDF':
+                html += row['raw']
+            else:
+                pix_paths = pdf_to_images(row['filename'])
+                
+                for pix_path in pix_paths:
+                    html += '<img src="file://' + os.path.abspath(pix_path) + '"><br/>'
+            
             html += '<div><br/><br/></div><hr>'
         
         f = open(os.path.abspath('tmp/mealprep.html'), 'w+')

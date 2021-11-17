@@ -41,7 +41,7 @@ def fetch_from_opml(filename, max_days_ago):
 
     data = {}
     for idx in range(len(aggregate_contents)):
-        data[aggregate_titles[idx]] = [aggregate_contents[idx], raw_contents[idx]]
+        data[aggregate_titles[idx]] = [aggregate_contents[idx], raw_contents[idx], '']
     
     return data
 
@@ -76,7 +76,7 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
 
     data = {}
     for idx in range(len(bookmark_contents)):
-        data[bookmark_titles[idx]] = [bookmark_contents[idx], bookmark_raw[idx]]
+        data[bookmark_titles[idx]] = [bookmark_contents[idx], bookmark_raw[idx], '']
     
     return data
 
@@ -87,7 +87,7 @@ def fetch_from_epub(filename):
     processed = BeautifulSoup(content, 'html.parser').get_text()
     
     data = {}
-    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [processed, content.decode('utf-8')]
+    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [processed, content.decode('utf-8'), '']
     
     return data
 
@@ -96,7 +96,11 @@ def fetch_from_pdf(filename):
     doc = parser.from_file(filename)
 
     data = {}
-    data[doc['metadata']['Author'] + ' | ' + doc['metadata']['pdf:docinfo:title']] = [doc['content'], doc['content']]
+
+    if doc['metadata'].get('Author', '') is not '':
+        data[doc['metadata']['Author'] + ' | ' + doc['metadata']['pdf:docinfo:title']] = [doc['content'], doc['content']]
+    else:
+        data[os.path.splitext(os.path.basename(filename))[0]] = [doc['content'], doc['content'], filename]
 
     return data
 
@@ -106,7 +110,7 @@ def fetch_from_plaintext(filename):
     raw = '\n'.join(['<p>' + e + '</p>' for e in text.split('\n')])
 
     data = {}
-    data[os.path.splitext(os.path.basename(filename))[0]] = [text, raw]
+    data[os.path.splitext(os.path.basename(filename))[0]] = [text, raw, '']
 
     return data
 

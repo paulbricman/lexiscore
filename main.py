@@ -22,7 +22,7 @@ if False:#st.session_state.conceptarium_url == '':
     st.warning('Please introduce the URL of your conceptarium!')
 else:
     if 'data' not in st.session_state.keys():
-       st.session_state['data'] = pd.DataFrame([], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw'])
+       st.session_state['data'] = pd.DataFrame([], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
 
     hero_section()
 
