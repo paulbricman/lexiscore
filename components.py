@@ -1,3 +1,4 @@
+from numpy.lib.function_base import select
 from reportlab.platypus.flowables import PageBreak
 import streamlit as st
 import pandas as pd
@@ -88,50 +89,11 @@ def add_section(parent):
                         item_type = '📝 Plain Text'
                         data = fetch_from_plaintext(path)
 
-                with st.spinner('Warming up NLP models...'):
-                    encoder_model = init_encoder()
-                    autoregressive_model = init_autoregressive()
-                    tokenizer = init_tokenizer()
-
-                    conceptarium = fetch_conceptarium()
-                    conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
-                    conceptarium_embeddings = get_embeddings(encoder_model, conceptarium)
-
                 for k, v in data.items():
-                    with st.spinner('Determining the nutritional value of "' + k + '"...'):
-                        content_paragraphs = get_paragraphs(v[0])
-                        content_embeddings = get_embeddings(encoder_model, content_paragraphs)
-                        
-                        #print('---', k, *content_paragraphs, sep='\n\n')
-
-                        if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
-                                results = get_closest_thoughts(conceptarium_embeddings, content_embeddings)
-                                skill = get_skill(results)
-                                challenge = get_challenge(conceptarium, results, content_paragraphs, autoregressive_model)
-                                raw_challenge = get_raw_challenge(content_paragraphs, autoregressive_model)
-                                challenge = -(raw_challenge - challenge) / raw_challenge
-
-                                alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
-                                lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
-
-                                if lexiscore >= 4:
-                                    lexiscore = 'E'
-                                elif lexiscore == 3:
-                                    lexiscore = 'D'
-                                elif lexiscore == 2:
-                                    lexiscore = 'C'
-                                elif lexiscore == 1:
-                                    lexiscore = 'B'
-                                else:
-                                    lexiscore = 'A'
-
-                                new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250, 1), skill, challenge, lexiscore, v[0], v[1], v[2]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
-                                st.session_state['data'] = st.session_state['data'].append(
-                                    new_entry, ignore_index=True)
-                        else:
-                            print('no paragraphs:', k, '---', v[0], '---')
-
-                #os.remove(path)
+                    if len(v[0].split()) / 250 > 1:
+                        new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250), 'N/A', 'N/A', 'N/A', v[0], v[1], v[2]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
+                        st.session_state['data'] = st.session_state['data'].append(
+                            new_entry, ignore_index=True)
 
             st.experimental_rerun()
 
@@ -142,49 +104,104 @@ def cart_section(parent):
     parent.table(st.session_state['data'][['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore']])
     
     if st.session_state['data'].shape[0] > 0:
-        parent.caption('Total: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
-        
-        fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=['title', 'lexiscore'], color_discrete_sequence=['#228b22'])
-        
-        parent.plotly_chart(fig)
+        parent.caption('Total reading time: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
+        if parent.button('start labeling'):
+            with st.spinner('Warming up NLP models...'):
+                encoder_model = init_encoder()
+                autoregressive_model = init_autoregressive()
+                tokenizer = init_tokenizer()
 
-    parent.markdown('---')
+                conceptarium = fetch_conceptarium()
+                conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
+                conceptarium_embeddings = get_embeddings(encoder_model, conceptarium)
 
-    parent.markdown('#### 🍱 meal prep')
-    parent.markdown('')
-    lexiscores = ['A', 'B', 'C', 'D', 'E']
-    min_lexiscore = parent.select_slider(
-        'Specify the minimum lexiscore to use for meal prep:', lexiscores)
-    allowed_lexiscores = lexiscores[:lexiscores.index(min_lexiscore) + 1]
-
-
-    if parent.button('start'):
-        selection = [e in allowed_lexiscores for e in st.session_state['data']['lexiscore']]
-        selection = st.session_state['data'][selection]
-
-        html = '<h1>🍱 meal prep</h1><hr><div><br/><br/></div>'
-
-        for idx, row in selection.iterrows():
-            html += '<h1>🥗 ' + row['title'] + '</h1>'
-            html += '<li><b>⏱️ ' + str(row['reading time']) + '</b> minutes</li>'
-            html += '<li>📗 lexiscore <b>' + row['lexiscore'] + '</b></li>'
-            html += '<hr><div><br/><br/></div>'
-            
-            if row['type'] != '📄 PDF':
-                html += row['raw']
-            else:
-                pix_paths = pdf_to_images(row['filename'])
+            for idx, row in st.session_state['data'].iterrows():
+                with st.spinner('Determining the nutritional value of "' + row['title'] + '"...'):
+                    content_paragraphs = get_paragraphs(row['text'])
+                    content_embeddings = get_embeddings(encoder_model, content_paragraphs)
                 
-                for pix_path in pix_paths:
-                    html += '<img src="file://' + os.path.abspath(pix_path) + '"><br/>'
+
+                    if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
+                        results = get_closest_thoughts(conceptarium_embeddings, content_embeddings)
+                        skill = get_skill(results)
+                        challenge = get_challenge(conceptarium, results, content_paragraphs, autoregressive_model)
+                        raw_challenge = get_raw_challenge(content_paragraphs, autoregressive_model)
+                        challenge = -(raw_challenge - challenge) / raw_challenge
+
+                        alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
+                        lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
+
+                        if lexiscore >= 4:
+                            lexiscore = 'E'
+                        elif lexiscore == 3:
+                            lexiscore = 'D'
+                        elif lexiscore == 2:
+                            lexiscore = 'C'
+                        elif lexiscore == 1:
+                            lexiscore = 'B'
+                        else:
+                            lexiscore = 'A'
+
+                        st.session_state['data'].loc[idx]['skill'] = skill
+                        st.session_state['data'].loc[idx]['challenge'] = challenge
+                        st.session_state['data'].loc[idx]['lexiscore'] = lexiscore
+
+                        print(st.session_state['data'][['skill', 'challenge', 'lexiscore']])
+                    else:
+                        print('no paragraphs:', row['title'], '---', row['text'], '---')
             
-            html += '<div><br/><br/></div><hr>'
+            st.experimental_rerun()
         
-        f = open(os.path.abspath('tmp/mealprep.html'), 'w+')
-        f.write(html)
-        
-        parent.info('Meal prep complete! Please use the button below to download the results.')
-        parent.download_button(label='download', data=html, file_name='mealprep.html', mime='text/html')
+        if not 'N/A' in st.session_state['data']['lexiscore'].values:
+            
+            parent.markdown('---')
+            parent.markdown('#### 📈 distribution')
+            fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=['title', 'lexiscore'], color_discrete_sequence=['#228b22'])
+            
+            parent.plotly_chart(fig)
+
+
+
+def meal_prep_section(parent):
+    if st.session_state['data'].shape[0] > 0 and not 'N/A' in st.session_state['data']['lexiscore'].values:
+        parent.markdown('---')
+        parent.markdown('#### 🍱 meal prep')
+        parent.markdown('')
+        lexiscores = ['A', 'B', 'C', 'D', 'E']
+        min_lexiscore = parent.select_slider(
+            'Specify the minimum lexiscore to use for meal prep:', lexiscores)
+        allowed_lexiscores = lexiscores[:lexiscores.index(min_lexiscore) + 1]
+
+        if parent.button('start'):
+            selection = [e in allowed_lexiscores for e in st.session_state['data']['lexiscore']]
+            selection = st.session_state['data'][selection]
+
+            if selection.shape[0] == 0:
+                parent.warning('No item qualifies for this selection, please lower the bar!')
+            else:
+                html = '<h1>🍱 meal prep</h1><hr><div><br/><br/></div>'
+
+                for idx, row in selection.iterrows():
+                    html += '<h1>🥗 ' + row['title'] + '</h1>'
+                    html += '<li><b>⏱️ ' + str(row['reading time']) + '</b> minutes</li>'
+                    html += '<li>📗 lexiscore <b>' + row['lexiscore'] + '</b></li>'
+                    html += '<hr><div><br/><br/></div>'
+                    
+                    if row['type'] != '📄 PDF':
+                        html += row['raw']
+                    else:
+                        pix_paths = pdf_to_images(row['filename'])
+                        
+                        for pix_path in pix_paths:
+                            html += '<img src="file://' + os.path.abspath(pix_path) + '"><br/>'
+                    
+                    html += '<div><br/><br/></div><hr>'
+                
+                f = open(os.path.abspath('tmp/mealprep.html'), 'w+')
+                f.write(html)
+                
+                parent.info('Meal prep complete! Please use the button below to download the results.')
+                parent.download_button(label='download', data=html, file_name='mealprep.html', mime='text/html')
         
 
 def footer_section():

@@ -18,8 +18,6 @@ def get_paragraphs(text):
     for line in lines:
         sents = sent_tokenize(line)
         if len(sents) > max_sents:
-            # for left in range(0, len(sents), max_sents):
-            #     paragraphs += [' '.join(sents[left:min(left+max_sents, len(sents))])]
             left = 0
             max_right = len(sents)
 
@@ -33,7 +31,7 @@ def get_paragraphs(text):
         elif len(sents) >= 2:
             paragraphs += [line]
 
-    if len(paragraphs) > 200:
+    if len(paragraphs) > 100:
         paragraphs = random.sample(paragraphs, k=100)
 
     return paragraphs

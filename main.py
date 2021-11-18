@@ -29,5 +29,6 @@ else:
     col1, padding, col2 = st.columns([18, 1, 40])
     add_section(col1)
     cart_section(col2)
+    meal_prep_section(col2)
 
     footer_section()
