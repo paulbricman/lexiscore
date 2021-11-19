@@ -1,17 +1,10 @@
-from numpy.lib.function_base import select
-from reportlab.platypus.flowables import PageBreak
 import streamlit as st
 import pandas as pd
 from connectors import *
-import time
 import numpy as np
 from processing import *
 from util import *
 import plotly.express as px
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-import webbrowser
-import pathlib
 
 
 def hero_section():
@@ -22,7 +15,7 @@ def hero_section():
 
 def sidebar_section():
     st.sidebar.header('settings')
-    st.session_state.conceptarium_url = st.sidebar.text_input(
+    st.session_state['conceptarium_url'] = st.sidebar.text_input(
         'What\'s the URL of your conceptarium?')
 
 

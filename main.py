@@ -19,7 +19,7 @@ st.set_page_config(
 
 sidebar_section()
 
-if False:#st.session_state.conceptarium_url == '':
+if st.session_state['conceptarium_url'] == '':
     st.warning('Please introduce the URL of your conceptarium!')
 else:
     purge_tmp()

@@ -4,10 +4,17 @@ import os
 import streamlit as st
 from processing import *
 import pandas as pd
+import requests
 
 
 def fetch_conceptarium():
-    conceptarium = json.load(open('data/dummy.json'))
+    #conceptarium = json.load(open('data/dummy.json')
+    conceptarium_url = st.session_state.conceptarium_url
+    if conceptarium_url[-1] != '/':
+       conceptarium_url += '/'
+    
+    conceptarium_url += 'find/lang/json?content=irrelevant&top_k=100000&silent=True'
+    conceptarium = requests.get(conceptarium_url).json()
     return conceptarium
 
 
