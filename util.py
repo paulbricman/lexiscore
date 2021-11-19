@@ -1,6 +1,9 @@
 import json
 import fitz
 import os
+import streamlit as st
+from processing import *
+import pandas as pd
 
 
 def fetch_conceptarium():
@@ -20,3 +23,30 @@ def pdf_to_images(path):
         pix.save(pix_path)
 
     return pix_paths
+
+
+def purge_tmp():
+    for root, dirs, files in os.walk('tmp'):
+        for file in files:
+            os.remove(os.path.abspath(os.path.join(root, file)))
+
+
+def init():
+    if 'data' not in st.session_state.keys():
+        st.session_state['data'] = pd.DataFrame([], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
+    if 'encoder_model' not in st.session_state.keys():
+        with st.spinner('Loading encoder model for finding notes related to content...'):
+            st.session_state['encoder_model'] = init_encoder()
+    if 'autoregressive_model' not in st.session_state.keys():
+        with st.spinner('Loading autoregressive model for reconstructing content...'):
+            st.session_state['autoregressive_model'] = init_autoregressive()
+    if 'tokenizer' not in st.session_state.keys():
+        with st.spinner('Loading tokenizer...'):
+            st.session_state['tokenizer'] = init_tokenizer()
+    if 'conceptarium' not in st.session_state.keys():
+        with st.spinner('Loading conceptarium and encoding it in advance...'):
+            conceptarium = fetch_conceptarium()
+            conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
+            conceptarium_embeddings = get_embeddings(conceptarium)
+            st.session_state['conceptarium'] = conceptarium
+            st.session_state['conceptarium_embeddings'] = conceptarium_embeddings
