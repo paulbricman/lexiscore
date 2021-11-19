@@ -69,7 +69,6 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
         f = open('./tmp/test.html', 'w+')
         f.write(raw)
         f.close()
-        #print('NEW BOOKMARK RAW', raw)
 
         bookmark_raw += [raw]
         bookmark_titles += [domain + ' | ' + article.title]

@@ -91,7 +91,7 @@ def add_section(parent):
 
                 for k, v in data.items():
                     if len(v[0].split()) / 250 > 1:
-                        new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250), 'N/A', 'N/A', 'N/A', v[0], v[1], v[2]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
+                        new_entry = pd.DataFrame([[item_type, k, round(len(v[0].split()) / 250), None, None, None, v[0], v[1], v[2]]], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
                         st.session_state['data'] = st.session_state['data'].append(
                             new_entry, ignore_index=True)
 
@@ -106,53 +106,45 @@ def cart_section(parent):
     if st.session_state['data'].shape[0] > 0:
         parent.caption('Total reading time: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
         if parent.button('start labeling'):
-            with st.spinner('Warming up NLP models...'):
-                encoder_model = init_encoder()
-                autoregressive_model = init_autoregressive()
-                tokenizer = init_tokenizer()
-
-                conceptarium = fetch_conceptarium()
-                conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
-                conceptarium_embeddings = get_embeddings(encoder_model, conceptarium)
+            
 
             for idx, row in st.session_state['data'].iterrows():
-                with st.spinner('Determining the nutritional value of "' + row['title'] + '"...'):
-                    content_paragraphs = get_paragraphs(row['text'])
-                    content_embeddings = get_embeddings(encoder_model, content_paragraphs)
-                
+                if row['lexiscore'] is None:
+                    with st.spinner('Determining the nutritional value of "' + row['title'] + '"...'):
+                        content_paragraphs = get_paragraphs(row['text'])
+                        content_embeddings = get_embeddings(content_paragraphs)
+                    
 
-                    if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
-                        results = get_closest_thoughts(conceptarium_embeddings, content_embeddings)
-                        skill = get_skill(results)
-                        challenge = get_challenge(conceptarium, results, content_paragraphs, autoregressive_model)
-                        raw_challenge = get_raw_challenge(content_paragraphs, autoregressive_model)
-                        challenge = -(raw_challenge - challenge) / raw_challenge
+                        if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
+                            results = get_closest_thoughts(content_embeddings)
+                            skill = get_skill(results)
+                            challenge = get_challenge(results, content_paragraphs)
+                            raw_challenge = get_raw_challenge(content_paragraphs)
+                            challenge = -(raw_challenge - challenge) / raw_challenge
 
-                        alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
-                        lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
+                            alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
+                            lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
 
-                        if lexiscore >= 4:
-                            lexiscore = 'E'
-                        elif lexiscore == 3:
-                            lexiscore = 'D'
-                        elif lexiscore == 2:
-                            lexiscore = 'C'
-                        elif lexiscore == 1:
-                            lexiscore = 'B'
+                            if lexiscore >= 4:
+                                lexiscore = 'E'
+                            elif lexiscore == 3:
+                                lexiscore = 'D'
+                            elif lexiscore == 2:
+                                lexiscore = 'C'
+                            elif lexiscore == 1:
+                                lexiscore = 'B'
+                            else:
+                                lexiscore = 'A'
+
+                            st.session_state['data'].loc[idx]['skill'] = skill
+                            st.session_state['data'].loc[idx]['challenge'] = challenge
+                            st.session_state['data'].loc[idx]['lexiscore'] = lexiscore
                         else:
-                            lexiscore = 'A'
-
-                        st.session_state['data'].loc[idx]['skill'] = skill
-                        st.session_state['data'].loc[idx]['challenge'] = challenge
-                        st.session_state['data'].loc[idx]['lexiscore'] = lexiscore
-
-                        print(st.session_state['data'][['skill', 'challenge', 'lexiscore']])
-                    else:
-                        print('no paragraphs:', row['title'], '---', row['text'], '---')
+                            print('no paragraphs:', row['title'], '---', row['text'], '---')
             
             st.experimental_rerun()
         
-        if not 'N/A' in st.session_state['data']['lexiscore'].values:
+        if not None in st.session_state['data']['lexiscore'].values:
             
             parent.markdown('---')
             parent.markdown('#### 📈 distribution')
@@ -163,7 +155,7 @@ def cart_section(parent):
 
 
 def meal_prep_section(parent):
-    if st.session_state['data'].shape[0] > 0 and not 'N/A' in st.session_state['data']['lexiscore'].values:
+    if st.session_state['data'].shape[0] > 0 and not None in st.session_state['data']['lexiscore'].values:
         parent.markdown('---')
         parent.markdown('#### 🍱 meal prep')
         parent.markdown('')
