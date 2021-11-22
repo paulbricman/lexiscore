@@ -31,8 +31,8 @@ def get_paragraphs(text):
         elif len(sents) >= 2:
             paragraphs += [line]
 
-    if len(paragraphs) > 100:
-        paragraphs = random.sample(paragraphs, k=100)
+    if len(paragraphs) > 200:
+        paragraphs = random.sample(paragraphs, k=200)
 
     return paragraphs
 
