@@ -10,7 +10,7 @@ import plotly.express as px
 def hero_section():
     st.title('📗 lexiscore')
     st.markdown('A nutritional label for food for thought.')
-    st.markdown('---')
+    #st.markdown('---')
 
 
 def sidebar_section():
@@ -97,7 +97,7 @@ def cart_section(parent):
     parent.table(st.session_state['data'][['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore']])
     
     if st.session_state['data'].shape[0] > 0:
-        parent.caption('Total reading time: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
+        #parent.caption('Total reading time: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
         
         
         if not None in st.session_state['data']['lexiscore'].values:
@@ -146,7 +146,7 @@ def cart_section(parent):
 
 def meal_prep_section(parent):
     if st.session_state['data'].shape[0] > 0 and not None in st.session_state['data']['lexiscore'].values:
-        parent.markdown('---')
+        parent.markdown('')
         parent.markdown('#### 🍱 meal prep')
 
         parent.image('assets/lexiscores.png')
