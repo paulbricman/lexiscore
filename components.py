@@ -182,8 +182,8 @@ def meal_prep_section(parent):
                     
                     html += '<div><br/><br/></div><hr>'
                 
-                f = open(os.path.abspath('tmp/mealprep.html'), 'w+')
-                f.write(html)
+                # f = open(os.path.abspath('mealprep.html'), 'w+')
+                # f.write(html)
                 
                 parent.info('Meal prep complete! Please use the button below to download the results.')
                 parent.download_button(label='download', data=html, file_name='mealprep.html', mime='text/html')

@@ -22,7 +22,6 @@ sidebar_section()
 if st.session_state['conceptarium_url'] == '':
     st.warning('Please introduce the URL of your conceptarium!')
 else:
-    purge_tmp()
     init()
     hero_section()
 

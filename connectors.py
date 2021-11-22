@@ -82,11 +82,11 @@ def fetch_from_bookmarks(filename, bookmark_folder, max_days_ago):
 
 def fetch_from_epub(filename):
     book = epub.read_epub(filename)
-    content = sorted([e.content for e in book.items if isinstance(e, epub.EpubHtml)], key=lambda x: len(x), reverse=True)[0]
+    content = ''.join([e.content.decode('utf-8') for e in book.items if isinstance(e, epub.EpubHtml)])
     processed = BeautifulSoup(content, 'html.parser').get_text()
     
     data = {}
-    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [processed, content.decode('utf-8'), '']
+    data[book.get_metadata('DC', 'creator')[0][0] + ' | ' + book.title] = [processed, content, '']
     
     return data
 
@@ -96,7 +96,7 @@ def fetch_from_pdf(filename):
 
     data = {}
 
-    if doc['metadata'].get('Author', '') is not '':
+    if doc['metadata'].get('Author', '') != '':
         data[doc['metadata']['Author'] + ' | ' + doc['metadata']['pdf:docinfo:title']] = [doc['content'], doc['content']]
     else:
         data[os.path.splitext(os.path.basename(filename))[0]] = [doc['content'], doc['content'], filename]
