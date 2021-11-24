@@ -100,52 +100,50 @@ def cart_section(parent):
         #parent.caption('Total reading time: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
         
         
-        if not None in st.session_state['data']['lexiscore'].values:
-            with parent.expander('distribution'):
-                fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=['title', 'lexiscore'], color_discrete_sequence=['#228b22'])
-                st.plotly_chart(fig)
-        else:
-            if parent.button('start labeling'):
-                for idx, row in st.session_state['data'].iterrows():
-                    if row['lexiscore'] is None:
-                        with st.spinner('Determining the nutritional value of "' + row['title'] + '"...'):
-                            content_paragraphs = get_paragraphs(row['text'])
-                            content_embeddings = get_embeddings(content_paragraphs)
-                        
+        with parent.expander('distribution'):
+            fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=['title', 'lexiscore'], color_discrete_sequence=['#228b22'])
+            st.plotly_chart(fig)
+        if parent.button('start labeling'):
+            for idx, row in st.session_state['data'].iterrows():
+                if row['lexiscore'] is None:
+                    with st.spinner('Determining the nutritional value of "' + row['title'] + '"...'):
+                        content_paragraphs = get_paragraphs(row['text'])
+                        content_embeddings = get_embeddings(content_paragraphs)
+                    
 
-                            if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
-                                results = get_closest_thoughts(content_embeddings)
-                                skill = get_skill(results)
-                                challenge = get_challenge(results, content_paragraphs)
-                                raw_challenge = get_raw_challenge(content_paragraphs)
-                                challenge = -(raw_challenge - challenge) / raw_challenge
+                        if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
+                            results = get_closest_thoughts(content_embeddings)
+                            skill = get_skill(results)
+                            challenge = get_challenge(results, content_paragraphs)
+                            raw_challenge = get_raw_challenge(content_paragraphs)
+                            challenge = -(raw_challenge - challenge) / raw_challenge
 
-                                alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
-                                lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
+                            alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
+                            lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
 
-                                if lexiscore >= 4:
-                                    lexiscore = 'E'
-                                elif lexiscore == 3:
-                                    lexiscore = 'D'
-                                elif lexiscore == 2:
-                                    lexiscore = 'C'
-                                elif lexiscore == 1:
-                                    lexiscore = 'B'
-                                else:
-                                    lexiscore = 'A'
-
-                                st.session_state['data'].loc[idx]['skill'] = skill
-                                st.session_state['data'].loc[idx]['challenge'] = challenge
-                                st.session_state['data'].loc[idx]['lexiscore'] = lexiscore
+                            if lexiscore >= 4:
+                                lexiscore = 'E'
+                            elif lexiscore == 3:
+                                lexiscore = 'D'
+                            elif lexiscore == 2:
+                                lexiscore = 'C'
+                            elif lexiscore == 1:
+                                lexiscore = 'B'
                             else:
-                                print('no paragraphs:', row['title'], '---', row['text'], '---')
-                
-                st.experimental_rerun()
+                                lexiscore = 'A'
+
+                            st.session_state['data'].loc[idx]['skill'] = skill
+                            st.session_state['data'].loc[idx]['challenge'] = challenge
+                            st.session_state['data'].loc[idx]['lexiscore'] = lexiscore
+                        else:
+                            print('no paragraphs:', row['title'], '---', row['text'], '---')
+            
+            st.experimental_rerun()
 
 
 
 def meal_prep_section(parent):
-    if st.session_state['data'].shape[0] > 0 and not None in st.session_state['data']['lexiscore'].values:
+    if st.session_state['data'].shape[0] > 0:
         parent.markdown('')
         parent.markdown('#### 🍱 meal prep')
 
