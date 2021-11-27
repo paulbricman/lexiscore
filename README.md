@@ -7,6 +7,8 @@ As a first effort in tackling the theme of information overload in content consu
 
 # Installation
 
+**Note**: This tool requires a running instance of the [conceptarium](https://paulbricman.com/thoughtware/conceptarium) as a proxy for your knowledge.
+
 The lexiscore labeler can either be deployed from source or using Docker.
 
 ### Docker
