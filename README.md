@@ -1,7 +1,7 @@
 ![](https://paulbricman.com/assets/img/lexiscore_cover.png)
 # Lexiscore
 
-As a first effort in tackling the theme of information overload in content consumption, I've been working on the lexiscore: a nutritional label for food for thought designed to help you narrow in on resources which personally bring you the most value. In the scope of this project, I’m considering valuable resources to be those from which you learn a lot, those which are packed with ideas you find surprising.
+As a first effort in tackling the [theme of information overload](/reflections/twenty-one) in content consumption, I've been working on the lexiscore: a nutritional label for food for thought designed to help you narrow in on resources which personally bring you the most value. The open source companion software can automatically label raw text originating from RSS feeds, bookmarked pages, PDFs, EPUBs, and more. In the scope of this project, I'm considering valuable resources to be those from which you learn a lot, those which are packed with ideas you find surprising.
 
 [Read more...](https://paulbricman.com/thoughtware/lexiscore)
 
