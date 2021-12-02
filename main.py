@@ -13,8 +13,7 @@ st.set_page_config(
     menu_items={
         'Get help': 'https://github.com/paulbricman/lexiscore/issues',
         'Report a Bug': 'https://github.com/paulbricman/lexiscore/issues/new',
-        # TODO
-        'About': 'https://paulbricman.com/thoughtware'
+        'About': 'https://paulbricman.com/thoughtware/lexiscore'
     })
 
 sidebar_section()
