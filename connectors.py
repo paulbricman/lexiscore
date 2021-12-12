@@ -25,7 +25,7 @@ def fetch_from_opml(filename, max_days_ago):
         
         aggregate_entries += entries
 
-    aggregate_entries = sorted(aggregate_entries, key=lambda x: dateutil.parser.parse(x['published']), reverse=True)
+    aggregate_entries = sorted(aggregate_entries, key=lambda x: (datetime.now() - dateutil.parser.parse(x['published']).replace(tzinfo=None)).days)
     aggregate_contents = [''] * len(aggregate_entries)
     aggregate_titles = [''] * len(aggregate_entries)
 

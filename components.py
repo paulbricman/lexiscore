@@ -109,6 +109,9 @@ def cart_section(parent):
                     with st.spinner('Determining the nutritional value of "' + row['title'] + '"...'):
                         content_paragraphs = get_paragraphs(row['text'])
                         content_embeddings = get_embeddings(content_paragraphs)
+
+                        print('---')
+                        print('\n\n'.join(content_paragraphs))
                     
 
                         if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:

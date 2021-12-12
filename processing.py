@@ -23,9 +23,13 @@ def get_paragraphs(text):
 
             while left < max_right:
                 right = left + 1
-                while right < max_right and right - left < max_sents and len(' '.join(sents[left:right]).split()) < 400:
+
+                while right < max_right and right - left < max_sents and len(' '.join(sents[left:right])) < 2500:
                     right += 1
-                paragraphs += [' '.join(sents[left:right])]
+
+                if len(' '.join(sents[left:right])) < 3000:
+                    paragraphs += [' '.join(sents[left:right])]
+
                 left = right
 
         elif len(sents) >= 2:
