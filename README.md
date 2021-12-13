@@ -1,3 +1,13 @@
+---
+title: Lexiscore
+emoji: 📗
+colorFrom: green
+colorTo: gray
+sdk: streamlit
+app_file: main.py
+pinned: false
+---
+
 ![](https://paulbricman.com/assets/img/lexiscore_cover.png)
 # Lexiscore
 
