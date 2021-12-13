@@ -51,6 +51,9 @@ def add_section(parent):
 
     parent.caption('')
 
+    if not os.path.exists('tmp'):
+        os.makedirs('tmp')
+
     if parent.button('add item'):
         if files == None:
             parent.warning('Please add file!')

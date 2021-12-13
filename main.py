@@ -5,7 +5,10 @@ from data import *
 import pandas as pd
 from components import *
 from util import *
+import nltk
 
+
+nltk.download('punkt')
 
 st.set_page_config(
     page_title='lexiscore',
