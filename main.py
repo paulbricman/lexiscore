@@ -1,7 +1,6 @@
 from enum import auto
 from pandas.core.algorithms import isin
 import streamlit as st
-from data import *
 import pandas as pd
 from components import *
 from util import *

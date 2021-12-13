@@ -2,14 +2,14 @@ tika==1.24
 regex==2021.8.3
 numpy==1.17.4
 PyMuPDF
-transformers==4.9.2
+transformers
 reportlab==3.5.34
 streamlit==0.89.0
 newspaper3k==0.2.8
 plotly==5.3.1
 nltk==3.6.2
 opml==0.5
-torch==1.9.0
+torch
 feedparser==6.0.8
 requests==2.22.0
 sentence_transformers==2.0.0
