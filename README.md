@@ -1,5 +1,5 @@
 ---
-title: Lexiscore
+title: lexiscore
 emoji: 📗
 colorFrom: green
 colorTo: gray
