@@ -10,7 +10,6 @@ import plotly.express as px
 def hero_section():
     st.title('📗 lexiscore')
     st.markdown('A nutritional label for food for thought.')
-    #st.markdown('---')
 
 
 def sidebar_section():

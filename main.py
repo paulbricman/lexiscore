@@ -21,6 +21,7 @@ st.set_page_config(
 sidebar_section()
 
 if st.session_state['conceptarium_url'] == '':
+    st.info('ℹ️ This tool is part of [a suite of experimental tools for thought](https://paulbricman.com/thoughtware) which incorporate AI primitives in knowledge work.')
     st.warning('Please introduce the URL of your conceptarium!')
 else:
     init()
