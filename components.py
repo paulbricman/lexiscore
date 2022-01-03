@@ -98,10 +98,7 @@ def cart_section(parent):
     parent.markdown('')
     parent.table(st.session_state['data'][['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore']])
     
-    if st.session_state['data'].shape[0] > 0:
-        #parent.caption('Total reading time: ' + str(round(sum(st.session_state['data'][['reading time']].values)[0])) + ' minutes')
-        
-        
+    if st.session_state['data'].shape[0] > 0:     
         with parent.expander('distribution'):
             fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=['title', 'lexiscore'], color_discrete_sequence=['#228b22'])
             st.plotly_chart(fig)
@@ -112,19 +109,18 @@ def cart_section(parent):
                         content_paragraphs = get_paragraphs(row['text'])
                         content_embeddings = get_embeddings(content_paragraphs)
 
-                        print('---')
-                        print('\n\n'.join(content_paragraphs))
+                        # print('---')
+                        # print('\n\n'.join(content_paragraphs))
                     
-
-                        if len(content_paragraphs) > 1 and len('\n\n'.join(content_paragraphs).split()) > 150:
+                        if len(content_paragraphs) > 1:
                             results = get_closest_thoughts(content_embeddings)
                             skill = get_skill(results)
                             challenge = get_challenge(results, content_paragraphs)
                             raw_challenge = get_raw_challenge(content_paragraphs)
                             challenge = -(raw_challenge - challenge) / raw_challenge
 
-                            alpha = np.arctan((challenge + 0.2) / (skill - 0.2))
-                            lexiscore = np.abs(alpha - 0.6) // (0.35 / 2)
+                            alpha = np.arctan2((challenge + 0.12), (skill - 0.38))
+                            lexiscore = np.abs(alpha - 0.8) // 0.25
 
                             if lexiscore >= 4:
                                 lexiscore = 'E'
