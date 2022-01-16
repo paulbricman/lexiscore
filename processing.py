@@ -67,7 +67,7 @@ def get_closest_thoughts(content_embeddings):
     return semantic_search(content_embeddings, st.session_state['conceptarium_embeddings'], top_k=3)
 
 
-def get_skill(results): 
+def get_skill(results):
     scores = [e[0]['score'] for e in results]
     return np.mean(scores)
 
@@ -75,20 +75,27 @@ def get_skill(results):
 def get_challenge(results, content_paragraphs):
     ppls = []
     lengths = []
-    
+
     for result_idx, result in enumerate(results):
-        context = 'Main Points:\n\n- ' + '\n- '.join([st.session_state['conceptarium'][e] for e in reversed([f['corpus_id'] for f in result])]) + '\n\nSummary\n\n'
+        context = 'Main Points:\n\n- ' + '\n- '.join([st.session_state['conceptarium'][e] for e in reversed([
+                                                     f['corpus_id'] for f in result])]) + '\n\nSummary\n\n'
         target = content_paragraphs[result_idx]
         full = context + target
-        
-        target_len = st.session_state['tokenizer'](target, return_tensors='pt').input_ids.size(1)
-        full_ids = st.session_state['tokenizer'](full, return_tensors='pt').input_ids
-        
-        target_ids = full_ids.clone()
-        target_ids[:,:-target_len] = -100
-        
+
+        target_len = st.session_state['tokenizer'](
+            target, return_tensors='pt').input_ids.size(1)
+        full_ids = st.session_state['tokenizer'](
+            full, return_tensors='pt').input_ids
+
+        truncated_ids = full_ids[0][-1000:].view(1,
+                                                 full_ids[0][-1000:].size(0))
+
+        target_ids = truncated_ids.clone()
+        target_ids[:, :-target_len] = -100
+
         with torch.no_grad():
-            outputs = st.session_state['autoregressive_model'](full_ids, labels=target_ids)
+            outputs = st.session_state['autoregressive_model'](
+                truncated_ids, labels=target_ids)
             neg_log_likelihood = outputs[0] * target_len
 
         ppl = torch.exp(neg_log_likelihood / target_len)
@@ -101,15 +108,18 @@ def get_challenge(results, content_paragraphs):
 def get_raw_challenge(content_paragraphs):
     ppls = []
     lengths = []
-    
+
     for content_paragraph_idx, content_paragraph in enumerate(content_paragraphs):
         target = content_paragraph
-        
-        target_len = st.session_state['tokenizer'](target, return_tensors='pt').input_ids.size(1)
-        target_ids = st.session_state['tokenizer'](target, return_tensors='pt').input_ids
-        
+
+        target_len = st.session_state['tokenizer'](
+            target, return_tensors='pt').input_ids.size(1)
+        target_ids = st.session_state['tokenizer'](
+            target, return_tensors='pt').input_ids
+
         with torch.no_grad():
-            outputs = st.session_state['autoregressive_model'](target_ids, labels=target_ids)
+            outputs = st.session_state['autoregressive_model'](
+                target_ids, labels=target_ids)
             neg_log_likelihood = outputs[0] * target_len
 
         ppl = torch.exp(neg_log_likelihood / target_len)
