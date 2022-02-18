@@ -15,7 +15,9 @@ def hero_section():
 def sidebar_section():
     st.sidebar.header('settings')
     st.session_state['conceptarium_url'] = st.sidebar.text_input(
-        'What\'s the URL of your conceptarium?')
+        'conceptarium URL')
+    st.session_state['access_token'] = st.sidebar.text_input(
+        'access token', type='password')
 
 
 def add_section(parent):

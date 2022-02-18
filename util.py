@@ -8,13 +8,19 @@ import requests
 
 
 def fetch_conceptarium():
-    #conceptarium = json.load(open('data/dummy.json')
-    conceptarium_url = st.session_state.conceptarium_url
-    if conceptarium_url[-1] != '/':
-       conceptarium_url += '/'
-    
-    conceptarium_url += 'find/lang/json?content=irrelevant&top_k=100000&silent=True'
-    conceptarium = requests.get(conceptarium_url).json()
+    conceptarium_url = st.session_state['conceptarium_url']
+    if not conceptarium_url.startswith('http://'):
+        conceptarium_url = 'http://' + conceptarium_url
+    if conceptarium_url[-1] == '/':
+        conceptarium_url = conceptarium_url[:-1]
+
+    conceptarium_url += ':8000/find'
+    conceptarium = requests.get(conceptarium_url, params={
+        'query': '',
+        'return_embeddings': False
+    }, headers={
+        'authorization': 'Bearer ' + st.session_state['access_token']
+    }).json()
     return conceptarium
 
 
@@ -24,8 +30,9 @@ def pdf_to_images(path):
     pix_paths = []
 
     for page_idx, page in enumerate(doc.pages()):
-        pix = page.get_pixmap(matrix=fitz.Matrix(150/72,150/72))
-        pix_path = os.path.abspath('./tmp/' + filename + str(page_idx) + '.png')
+        pix = page.get_pixmap(matrix=fitz.Matrix(150/72, 150/72))
+        pix_path = os.path.abspath(
+            './tmp/' + filename + str(page_idx) + '.png')
         pix_paths += [pix_path]
         pix.save(pix_path)
 
@@ -40,7 +47,8 @@ def purge_tmp():
 
 def init():
     if 'data' not in st.session_state.keys():
-        st.session_state['data'] = pd.DataFrame([], columns=['type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
+        st.session_state['data'] = pd.DataFrame([], columns=[
+                                                'type', 'title', 'reading time', 'skill', 'challenge', 'lexiscore', 'text', 'raw', 'filename'])
     if 'encoder_model' not in st.session_state.keys():
         with st.spinner('Loading encoder model for finding notes related to content...'):
             st.session_state['encoder_model'] = init_encoder()
@@ -52,8 +60,9 @@ def init():
             st.session_state['tokenizer'] = init_tokenizer()
     if 'conceptarium' not in st.session_state.keys():
         with st.spinner('Loading conceptarium and encoding it in advance...'):
-            conceptarium = fetch_conceptarium()
-            conceptarium = [e['content'] for e in conceptarium if e['modality'] == 'language']
+            conceptarium = fetch_conceptarium()['authorized_thoughts']
+            conceptarium = [e['content']
+                            for e in conceptarium if e['modality'] == 'text']
             conceptarium_embeddings = get_embeddings(conceptarium)
             st.session_state['conceptarium'] = conceptarium
             st.session_state['conceptarium_embeddings'] = conceptarium_embeddings
