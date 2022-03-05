@@ -107,6 +107,8 @@ def cart_section(parent):
             fig = px.scatter(st.session_state['data'], x='skill', y='challenge', hover_data=[
                              'title', 'lexiscore'], color_discrete_sequence=['#228b22'])
             st.plotly_chart(fig)
+            st.download_button(
+                'download raw', st.session_state['data'].to_csv(), 'lexiscore.csv')
         if parent.button('start labeling'):
             for idx, row in st.session_state['data'].iterrows():
                 if row['lexiscore'] is None:
@@ -163,6 +165,8 @@ def meal_prep_section(parent):
         min_lexiscore = parent.select_slider(
             'Specify the minimum lexiscore to use for meal prep:', lexiscores)
         allowed_lexiscores = lexiscores[:lexiscores.index(min_lexiscore) + 1]
+        include_predictions = parent.checkbox(
+            'Include labels in output document?', True)
 
         if parent.button('start'):
             selection = [
@@ -176,9 +180,10 @@ def meal_prep_section(parent):
                 html = '<h1>🍱 meal prep</h1><hr><div><br/><br/></div>'
 
                 for idx, row in selection.iterrows():
-                    html += '<img width="20%" src="file://' + \
-                        os.path.abspath(
-                            'assets/' + row['lexiscore'] + '.png') + '"><br/>'
+                    if include_predictions:
+                        html += '<img width="20%" src="file://' + \
+                            os.path.abspath(
+                                'assets/' + row['lexiscore'] + '.png') + '"><br/>'
                     html += '<h1>🥗 ' + row['title'] + '</h1>'
                     html += '<li><b>⏱️ ' + \
                         str(row['reading time']) + '</b> minutes</li>'

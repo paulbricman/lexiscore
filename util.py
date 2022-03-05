@@ -14,7 +14,7 @@ def fetch_conceptarium():
     if conceptarium_url[-1] == '/':
         conceptarium_url = conceptarium_url[:-1]
 
-    conceptarium_url += ':8000/find'
+    conceptarium_url += '/find'
     conceptarium = requests.get(conceptarium_url, params={
         'query': '',
         'return_embeddings': False
